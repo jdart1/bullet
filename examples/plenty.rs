@@ -10,8 +10,6 @@ use std::{
     io,
 };
 
-use errno::errno;
-
 macro_rules! net_id {
     () => {
         "plenty"
@@ -111,22 +109,13 @@ fn main() {
           println!("running bench on exe path {path}");
           let mut bench_cmd = Command::new(path);
 
-          let output = bench_cmd.arg("bench").output();
+          let output = bench_cmd.arg("bench").output().expect("Failed to run bench on engine!");
 
-          let mut bench_string = String::from("");
+          assert!(output.status.success(), "Failed to run bench on engine!");
 
-          match output {
-              io::Result::Err(err) => {
-                  let e = errno();
-                  println!("Error {}: {}", e, err);
-              },
-              io::Result::Ok(out) => {
-                  assert!(out.status.success(), "Bad status from bench run!");
-                  bench_string = String::from_utf8(out.stdout).expect("Could not parse bench output!");
-              }
-          };
+          let out = String::from_utf8(output.stdout).expect("Could not parse bench output!");
 
-          let split = bench_string.split_whitespace();
+          let split = out.split_whitespace();
 
           let mut bench = None;
 
@@ -146,7 +135,7 @@ fn main() {
           if let Some(bench) = bench {
               Ok(bench)
           } else {
-              Err(String::from("Failed to parse bench output!"))
+              Err(String::from("Failed to run bench!"))
           }
        }
     }
