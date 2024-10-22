@@ -6,13 +6,14 @@ use bullet_lib::{
 
 use std::{
     path::PathBuf,
+    path::Path,
     process::Command,
     io,
 };
 
 macro_rules! net_id {
     () => {
-        "arasan2"
+        "arasan"
     };
 }
 
@@ -21,21 +22,21 @@ const NET_ID: &str = net_id!();
 fn main() {
     #[rustfmt::skip]
     let mut trainer = TrainerBuilder::default()
-        .quantisations(&[255, 64])
+        .quantisations(&[510, 64])
         .optimiser(optimiser::AdamW)
         .loss_fn(Loss::SigmoidMSE)
         .input(inputs::ChessBucketsMirrored::new([
-        0,  1,  2,  3,
-        4,  5,  6,  7,
-        8,  8,  9,  9,
-        10, 10, 10, 10,
-        11, 11, 11, 11,
-        11, 11, 11, 11,
-        12, 12, 12, 12,
-        12, 12, 12, 12
+        0, 0, 1, 1,
+        2, 2, 2, 2,
+        3, 3, 3, 3,
+        4, 4, 4, 4,
+        5, 5, 5, 5,
+        5, 5, 5, 5,
+        6, 6, 6, 6,
+        6, 6, 6, 6
         ]))
         .output_buckets(outputs::MaterialCount::<8>)
-        .feature_transformer(1024)
+        .feature_transformer(2048)
         .activate(Activation::SCReLU)
         .add_layer(1)
         .build();
@@ -47,7 +48,7 @@ fn main() {
             batch_size: 16_384,
             batches_per_superbatch: 6104,
             start_superbatch: 1,
-            end_superbatch: 240,
+            end_superbatch: 200,
         },
         wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
         lr_scheduler: lr::StepLR { start: 0.001, gamma: 0.3, step: 60 },
@@ -64,7 +65,10 @@ fn main() {
        test_set: None,
        output_directory: "checkpoints", batch_queue_size: 512 };
 
-    let data_loader = loader::DirectSequentialDataLoader::new(&["/data2/bullet/oct2024/new/trainingdata/pos1.bullet"]);
+    let data_loader = loader::DirectSequentialDataLoader::new(&["/data2/bullet/oct2024/lc0/lc0-test80-oct15-17.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct17-20.bullet",
+        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
+        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet"]);
 
     pub struct ArasanEngine;
 
@@ -77,6 +81,9 @@ fn main() {
              output().
              expect("failed to execute git submodule");
 
+          // Link network files to base directory, so default network is found
+          Command::new("bash").current_dir(inp_path).arg("-c").arg("ln -s network/*.nnue .").spawn().expect("ln failed");
+
           let mut build_base = Command::new("make");
 
           // Arasan makefile is in src subdir
@@ -86,10 +93,12 @@ fn main() {
           let out_path2 : PathBuf = ["..", out_path].iter().collect();
           let out_path_str = out_path2.to_str().unwrap();
 
-          build_base.current_dir(path).arg(format!("EXE={out_path_str}")).arg("CC=clang").arg("BUILD_TYPE=avx2").arg("-j");
+          build_base.current_dir(path).arg(format!("EXE={out_path_str}")).arg("CC=clang").arg("BUILD_TYPE=avx2");
 
-          if let Some(net_path) = net {
-              build_base.arg(format!("NETWORK={}", net_path));
+          if net.is_some() {
+              // we only need the base name - Arasan will expect it to be in the same dir as the exe.
+              let net_name = Path::new(net.unwrap()).file_name().unwrap().to_str().unwrap();
+              build_base.arg(format!("NETWORK={}", net_name));
           }
 
           match build_base.output() {
@@ -142,7 +151,7 @@ fn main() {
 
     let base_engine = Engine {
         repo: "https://github.com/jdart1/arasan-chess",
-        branch: "V3",
+        branch: "test2",
         bench: None,
         net_path: None,
         uci_options: vec![UciOption("Hash", "16")],
@@ -151,7 +160,7 @@ fn main() {
 
     let dev_engine = Engine {
         repo: "https://github.com/jdart1/arasan-chess",
-        branch: "V3",
+        branch: "test2",
         bench: None,
         net_path: None,
         uci_options: vec![UciOption("Hash", "16")],
