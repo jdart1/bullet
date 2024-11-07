@@ -13,7 +13,7 @@ use std::{
 
 macro_rules! net_id {
     () => {
-        "arasan"
+        "arasan5"
     };
 }
 
@@ -22,22 +22,21 @@ const NET_ID: &str = net_id!();
 fn main() {
     #[rustfmt::skip]
     let mut trainer = TrainerBuilder::default()
-        .quantisations(&[510, 64])
+        .quantisations(&[255, 64])
         .optimiser(optimiser::AdamW)
         .loss_fn(Loss::SigmoidMSE)
         .input(inputs::ChessBucketsMirrored::new([
-        0, 0, 1, 1,
-        2, 2, 2, 2,
-        3, 3, 3, 3,
-        4, 4, 4, 4,
-        5, 5, 5, 5,
-        5, 5, 5, 5,
-        6, 6, 6, 6,
-        6, 6, 6, 6
-        ]))
+            0, 1, 2, 3,
+            4, 4, 5, 5,
+            6, 6, 7, 7,
+            6, 6, 7, 7,
+            8, 8, 8, 8,
+            8, 8, 8, 8,
+            8, 8, 8, 8,
+            8, 8, 8, 8]))
         .output_buckets(outputs::MaterialCount::<8>)
-        .feature_transformer(2048)
-        .activate(Activation::SCReLU)
+        .feature_transformer(1536)
+        .activate(Activation::CReLU)
         .add_layer(1)
         .build();
 
@@ -48,7 +47,7 @@ fn main() {
             batch_size: 16_384,
             batches_per_superbatch: 6104,
             start_superbatch: 1,
-            end_superbatch: 200,
+            end_superbatch: 240,
         },
         wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
         lr_scheduler: lr::StepLR { start: 0.001, gamma: 0.3, step: 60 },
@@ -56,7 +55,7 @@ fn main() {
     };
 
     let optimiser_params =
-        optimiser::AdamWParams { decay: 0.01, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
+        optimiser::AdamWParams { decay: 0.008, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
 
     trainer.set_optimiser_params(optimiser_params);
 
@@ -65,8 +64,10 @@ fn main() {
        test_set: None,
        output_directory: "checkpoints", batch_queue_size: 512 };
 
-    let data_loader = loader::DirectSequentialDataLoader::new(&["/data2/bullet/oct2024/lc0/lc0-test80-oct15-17.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct17-20.bullet",
+    let data_loader = loader::DirectSequentialDataLoader::new(&["/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet",
         "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
         "/data2/bullet/oct2024/new/trainingdata/pos2.bullet"]);
 
@@ -151,7 +152,7 @@ fn main() {
 
     let base_engine = Engine {
         repo: "https://github.com/jdart1/arasan-chess",
-        branch: "test2",
+        branch: "v3",
         bench: None,
         net_path: None,
         uci_options: vec![UciOption("Hash", "16")],
@@ -160,7 +161,7 @@ fn main() {
 
     let dev_engine = Engine {
         repo: "https://github.com/jdart1/arasan-chess",
-        branch: "test2",
+        branch: "v3",
         bench: None,
         net_path: None,
         uci_options: vec![UciOption("Hash", "16")],
@@ -179,7 +180,7 @@ fn main() {
         dev_engine,
     };
 
-    trainer.run_and_test(&schedule, &settings, &data_loader, &testing);
+    trainer.run(&schedule, &settings, &data_loader);
 
     for fen in [
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
