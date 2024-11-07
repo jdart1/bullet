@@ -55,7 +55,7 @@ fn main() {
     };
 
     let optimiser_params =
-        optimiser::AdamWParams { decay: 0.008, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
+        optimiser::AdamWParams { decay: 0.009, beta1: 0.92, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
 
     trainer.set_optimiser_params(optimiser_params);
 
@@ -65,9 +65,6 @@ fn main() {
        output_directory: "checkpoints", batch_queue_size: 512 };
 
     let data_loader = loader::DirectSequentialDataLoader::new(&["/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet",
         "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
         "/data2/bullet/oct2024/new/trainingdata/pos2.bullet"]);
 
