@@ -35,8 +35,8 @@ fn main() {
             8, 8, 8, 8,
             8, 8, 8, 8]))
         .output_buckets(outputs::MaterialCount::<8>)
-        .feature_transformer(1536)
-        .activate(Activation::CReLU)
+        .feature_transformer(1024)
+        .activate(Activation::SCReLU)
         .add_layer(1)
         .build();
 
@@ -64,9 +64,10 @@ fn main() {
        test_set: None,
        output_directory: "checkpoints", batch_queue_size: 512 };
 
-    let data_loader = loader::DirectSequentialDataLoader::new(&["/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
+    let data_loader = loader::DirectSequentialDataLoader::new(&[
         "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
-        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet"]);
+        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
+        "/data2/bullet/nov2024/trainingdata/pos3.bullet"]);
 
     pub struct ArasanEngine;
 
