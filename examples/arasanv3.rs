@@ -47,15 +47,15 @@ fn main() {
             batch_size: 16_384,
             batches_per_superbatch: 6104,
             start_superbatch: 1,
-            end_superbatch: 240,
+            end_superbatch: 300,
         },
         wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
-        lr_scheduler: lr::StepLR { start: 0.001, gamma: 0.3, step: 60 },
+        lr_scheduler: lr::ExponentialDecayLR { initial_lr: 0.001, final_lr: 0.0001, final_superbatch: 240 },
         save_rate: 150,
     };
 
     let optimiser_params =
-        optimiser::AdamWParams { decay: 0.009, beta1: 0.92, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
+        optimiser::AdamWParams { decay: 0.01, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
 
     trainer.set_optimiser_params(optimiser_params);
 
@@ -67,7 +67,12 @@ fn main() {
     let data_loader = loader::DirectSequentialDataLoader::new(&[
         "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
         "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
-        "/data2/bullet/nov2024/trainingdata/pos3.bullet"]);
+        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet"
+        ]);
 
     pub struct ArasanEngine;
 
