@@ -1,7 +1,14 @@
 use bullet_lib::{
-    inputs, loader, lr, optimiser, outputs,
-    testing::{Engine, EngineType, OpeningBook, TestSettings, TimeControl, UciOption},
-    wdl, Activation, LocalSettings, Loss, TrainerBuilder, TrainingSchedule, TrainingSteps,
+    nn::{optimiser, Activation},
+    trainer::{
+        default::{
+            inputs, loader, outputs,
+            testing::{Engine, EngineType, GameRunnerPath, OpeningBook, TestSettings, TimeControl, UciOption},
+            Loss, TrainerBuilder,
+        },
+        schedule::{lr, wdl, TrainingSchedule, TrainingSteps},
+        settings::LocalSettings,
+    },
 };
 
 use std::{
@@ -24,6 +31,7 @@ fn main() {
     let mut trainer = TrainerBuilder::default()
         .quantisations(&[255, 64])
         .optimiser(optimiser::AdamW)
+//        .optimiser(optimiser::Ranger)
         .loss_fn(Loss::SigmoidMSE)
         .input(inputs::ChessBucketsMirrored::new([
             0, 1, 2, 3,
@@ -47,15 +55,17 @@ fn main() {
             batch_size: 16_384,
             batches_per_superbatch: 6104,
             start_superbatch: 1,
-            end_superbatch: 300,
+            end_superbatch: 240,
         },
         wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
-        lr_scheduler: lr::ExponentialDecayLR { initial_lr: 0.001, final_lr: 0.0001, final_superbatch: 240 },
-        save_rate: 150,
+        //lr_scheduler: lr::ExponentialDecayLR { initial_lr: 0.001, final_lr: 0.0001, final_superbatch: 240 },
+        lr_scheduler: lr::StepLR { start: 0.001, gamma: 0.5, step: 60 },
+        save_rate: 60,
     };
 
     let optimiser_params =
         optimiser::AdamWParams { decay: 0.01, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
+//        optimiser::RangerParams { decay: 0.01, beta1: 0.99, beta2: 0.999, min_weight: -1.98, max_weight: 1.98, alpha: 0.5, k: 6 };
 
     trainer.set_optimiser_params(optimiser_params);
 
@@ -65,13 +75,17 @@ fn main() {
        output_directory: "checkpoints", batch_queue_size: 512 };
 
     let data_loader = loader::DirectSequentialDataLoader::new(&[
-        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
-        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
-        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
-        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet"
+//        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
+//        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
+        "/data2/bullet/feb2025/trainingdata/pos1.bullet",
+        "/data2/bullet/feb2025/trainingdata/pos2.bullet",
+        "/data2/bullet/feb2025/trainingdata/pos3.bullet",
+        "/data2/bullet/feb2025/trainingdata/pos4.bullet",
+//        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
+//        "/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
+//        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
+//        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
+//        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet"
         ]);
 
     pub struct ArasanEngine;
@@ -174,7 +188,7 @@ fn main() {
     let testing = TestSettings {
         test_rate: 20,
         out_dir: concat!("../../nets/", net_id!()),
-        cutechess_path: "/home/jdart/chess/cutechess-cli/cutechess-cli",
+        gamerunner_path: GameRunnerPath::CuteChess("/home/jdart/chess/cutechess-cli/cutechess-cli"),
         book_path: OpeningBook::Pgn("/home/jdart/chess/books/8moves_v3.pgn"),
         num_game_pairs: 2000,
         concurrency: 6,
