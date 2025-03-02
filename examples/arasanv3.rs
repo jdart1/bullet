@@ -20,7 +20,7 @@ use std::{
 
 macro_rules! net_id {
     () => {
-        "arasan5"
+        "arasan8"
     };
 }
 
@@ -59,7 +59,7 @@ fn main() {
         },
         wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
         //lr_scheduler: lr::ExponentialDecayLR { initial_lr: 0.001, final_lr: 0.0001, final_superbatch: 240 },
-        lr_scheduler: lr::StepLR { start: 0.001, gamma: 0.5, step: 60 },
+        lr_scheduler: lr::StepLR { start: 0.001, gamma: 0.45, step: 60 },
         save_rate: 60,
     };
 
@@ -75,13 +75,14 @@ fn main() {
        output_directory: "checkpoints", batch_queue_size: 512 };
 
     let data_loader = loader::DirectSequentialDataLoader::new(&[
-//        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
-//        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
+        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
+        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
+        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
+//        "/data2/bullet/dec2024/trainingdata/pos4-shuffled.bullet",
         "/data2/bullet/feb2025/trainingdata/pos1.bullet",
         "/data2/bullet/feb2025/trainingdata/pos2.bullet",
         "/data2/bullet/feb2025/trainingdata/pos3.bullet",
         "/data2/bullet/feb2025/trainingdata/pos4.bullet",
-//        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
 //        "/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
 //        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
 //        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
