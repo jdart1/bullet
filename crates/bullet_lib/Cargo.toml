@@ -42,10 +42,6 @@ name = "arasanv3"
 path = "../../examples/arasanv3.rs"
 
 [[example]]
-name = "arasanv4"
-path = "../../examples/arasanv4.rs"
-
-[[example]]
 name = "akimbo-main"
 path = "../../examples/extra/akimbo-main.rs"
 

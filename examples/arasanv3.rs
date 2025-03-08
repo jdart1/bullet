@@ -43,8 +43,9 @@ fn main() {
             8, 8, 8, 8,
             8, 8, 8, 8]))
         .output_buckets(outputs::MaterialCount::<8>)
-        .feature_transformer(1024)
+        .feature_transformer(1536)
         .activate(Activation::SCReLU)
+        .disallow_transpose_in_quantised_network()
         .add_layer(1)
         .build();
 
@@ -63,8 +64,8 @@ fn main() {
         save_rate: 60,
     };
 
-    let optimiser_params =
-        optimiser::AdamWParams { decay: 0.01, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
+    let optimiser_params = optimiser::AdamWParams::default();
+//        optimiser::AdamWParams { decay: 0.01, beta1: 0.9, beta2: 0.999, min_weight: -1.98, max_weight: 1.98 };
 //        optimiser::RangerParams { decay: 0.01, beta1: 0.99, beta2: 0.999, min_weight: -1.98, max_weight: 1.98, alpha: 0.5, k: 6 };
 
     trainer.set_optimiser_params(optimiser_params);
@@ -75,18 +76,19 @@ fn main() {
        output_directory: "checkpoints", batch_queue_size: 512 };
 
     let data_loader = loader::DirectSequentialDataLoader::new(&[
-        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
-        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
-        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
+//        "/data2/bullet/oct2024/new/trainingdata/pos1.bullet",
+//        "/data2/bullet/oct2024/new/trainingdata/pos2.bullet",
+//        "/data2/bullet/nov2024/trainingdata/pos3.bullet",
 //        "/data2/bullet/dec2024/trainingdata/pos4-shuffled.bullet",
-        "/data2/bullet/feb2025/trainingdata/pos1.bullet",
-        "/data2/bullet/feb2025/trainingdata/pos2.bullet",
-        "/data2/bullet/feb2025/trainingdata/pos3.bullet",
-        "/data2/bullet/feb2025/trainingdata/pos4.bullet",
-//        "/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
-//        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
-//        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
-//        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet"
+//        "/data2/bullet/feb2025/trainingdata/pos1.bullet",
+//        "/data2/bullet/feb2025/trainingdata/pos2.bullet",
+//        "/data2/bullet/feb2025/trainingdata/pos3.bullet",
+//        "/data2/bullet/feb2025/trainingdata/pos4.bullet",
+        "/data2/lc0/feb2025/pos.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct1-10.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct10-20.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct20-31.bullet",
+        "/data2/bullet/oct2024/lc0/lc0-test80-oct31-nov3.bullet"
         ]);
 
     pub struct ArasanEngine;
